@@ -680,10 +680,20 @@ namespace hex {
                 if (!sessionType.has_value() || sessionType == "x11")
                     return 1.0F;
                 else {
-                    float xScale = 0, yScale = 0;
-                    glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xScale, &yScale);
+                    static float scaleFactor = -1;
+                    if (scaleFactor <= 0) {
+                        int windowW, windowH;
+                        int displayW, displayH;
+                        glfwGetWindowSize(getMainWindowHandle(), &windowW, &windowH);
+                        glfwGetFramebufferSize(getMainWindowHandle(), &displayW, &displayH);
 
-                    return std::midpoint(xScale, yScale);
+                        float xScale = (windowW > 0) ? float(displayW) / windowW : 1.0f;
+                        float yScale = (windowH > 0) ? float(displayH) / windowH : 1.0f;
+
+                        scaleFactor = std::midpoint(xScale, yScale);
+                    }
+
+                    return scaleFactor;
                 }
             #elif defined(OS_WEB)
                 return MAIN_THREAD_EM_ASM_INT({ return window.devicePixelRatio; });
